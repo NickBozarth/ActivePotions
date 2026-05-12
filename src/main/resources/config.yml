@@ -1,0 +1,14 @@
+Potion of return:
+  player-command: "say hello"
+  console-command: "say goodbye"
+  permission: "activepotions.return"
+  color: 444aba
+  uses: 1
+  ingredients:
+  # - type: KeyedItem
+  #   key: "activepotions:Potion of Return"
+  #   datatype: BOOLEAN
+  #   amount: 1
+  - type: Item
+    material: NETHER_WART
+    amount: 2

@@ -1,0 +1,9 @@
+name: ActivePotions
+version: 1.0.0
+main: com.tinnyspoon.activepotions.ActivePotions
+api-version: 1.21.11
+author: tinnyspoon
+description: ""
+
+commands:
+  hello:
