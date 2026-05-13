@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,5 +29,11 @@ public abstract class Ingredient {
 
         // default to exception
         throw new IllegalArgumentException("Ingredient no ingredient type defined for " + typeString);
+    }
+
+    protected abstract boolean _matchesItem(ItemStack item);
+    public boolean matchesItem(ItemStack item) {
+        return item.getAmount() >= this.amount &&
+               this._matchesItem(item);
     }
 }

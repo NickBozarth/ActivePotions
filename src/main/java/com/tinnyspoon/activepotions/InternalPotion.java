@@ -1,31 +1,54 @@
 package com.tinnyspoon.activepotions;
 
+import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import com.tinnyspoon.activepotions.ingredients.Ingredient;
 
+import io.papermc.paper.datacomponent.DataComponentType;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.TooltipDisplay;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+
 public record InternalPotion (
     String name,
+    String description,
     List<String> keys,
     List<String> playerCommands,
     List<String> consoleCommands,
     String permission,
     Color color,
     int uses,
-    List<Ingredient> ingredients
+    List<Ingredient> ingredients,
+    NamespacedKey potionKey
 ) {
     public static @Nullable InternalPotion fromSection(String potionName, @NotNull ConfigurationSection sec) {
+        String description           = sec.getString("description", "");
         List<String> keys            = sec.getStringList("keys");
         List<String> playerCommands  = sec.getStringList("player-commands");
         List<String> consoleCommands = sec.getStringList("console-commands");
@@ -62,7 +85,83 @@ public record InternalPotion (
             }
         }
 
+        NamespacedKey potionKey = new NamespacedKey(ActivePotions.keyNamespace, potionName.replace(' ', '_').toLowerCase());
 
-        return new InternalPotion(potionName, keys, playerCommands, consoleCommands, permission, color, uses, ingredients);
+
+        return new InternalPotion(potionName, description, keys, playerCommands, consoleCommands, permission, color, uses, ingredients, potionKey);
+    }
+
+    public @NotNull ItemStack asItem() {
+        ItemStack potion = new ItemStack(Material.POTION);
+        PotionMeta potionMeta = (PotionMeta)potion.getItemMeta();
+
+        potionMeta.setColor(this.color());
+        int rgbColor = this.color().asRGB();
+        potionMeta.displayName(Component.text(this.name(), TextColor.color(rgbColor), TextDecoration.BOLD));
+        PersistentDataContainer pdt = potionMeta.getPersistentDataContainer();
+        pdt.set(new NamespacedKey(ActivePotions.keyNamespace, "uses"), PersistentDataType.INTEGER, this.uses());
+
+        List<Component> lore = potionMeta.lore();
+        if (lore == null) lore = new ArrayList<>();
+        lore.addAll(
+            List.of(
+                Component.text(this.description()),
+                Component.text(""),
+                Component.text("Uses Remaining: " + this.uses())
+            )
+        );
+        potionMeta.lore(lore);
+
+        this.keys().stream().forEach(key -> pdt.set(this.potionKey, PersistentDataType.BOOLEAN, true));
+
+        potion.setItemMeta(potionMeta);
+
+        TooltipDisplay.Builder builder = TooltipDisplay.tooltipDisplay();
+        builder.addHiddenComponents(DataComponentTypes.POTION_CONTENTS);
+        potion.setData(DataComponentTypes.TOOLTIP_DISPLAY, builder.build());
+
+
+        return potion;
+    }
+
+    public void consume(Player player) {
+        if (permission != null && !player.hasPermission(this.permission)) {
+            player.sendMessage("You do not have the permission to use this item");
+            return;
+        }
+
+        this.consoleCommands.forEach(command -> {
+            command = command.replaceAll("<player>", player.getName());
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        });
+        this.playerCommands.forEach(command -> {
+            command = command.replaceAll("<player>", player.getName());
+            player.performCommand(command);
+        });
+    }
+
+    public boolean matchesIngredients(@Nullable ItemStack item0, @Nullable ItemStack item1, @Nullable ItemStack item2) {
+        if (item0 == null && item1 == null && item2 == null) return false;
+
+        Boolean itemUsed[] = new Boolean[3];
+        Arrays.fill(itemUsed, false);
+
+        this.ingredients.stream().allMatch(ingredient -> {
+            List<Pair<Integer, ItemStack>> matchingItems = new ArrayList<>();
+            if (!itemUsed[0] && ingredient.matchesItem(item0)) matchingItems.add(Pair.of(0, item0));
+            if (!itemUsed[1] && ingredient.matchesItem(item1)) matchingItems.add(Pair.of(1, item1));
+            if (!itemUsed[2] && ingredient.matchesItem(item2)) matchingItems.add(Pair.of(2, item2));
+
+            if (matchingItems.isEmpty()) return false;
+
+            // why 😭😭
+            var smallestMatchingItemIndex = matchingItems.stream().min((i, j) -> Integer.compare(i.getRight().getAmount(), j.getRight().getAmount())).get().getLeft();
+            itemUsed[smallestMatchingItemIndex] = true;
+
+            return true;
+        });
+
+
+        return true;
     }
 }

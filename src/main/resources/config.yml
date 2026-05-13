@@ -1,18 +1,22 @@
-Potion of return:
-  keys:
-  - "this key is here"
+advanced-lore: true
 
-  player-commands: 
-  - "say hello"
-  console-commands: 
-  - "say goodbye"
-  permission: "activepotions.return"
-  color: 0x444aba
-  uses: 1
-  ingredients:
-  # - type: KeyedItem
-  #   key: "activepotions:Potion of Return"
-  #   amount: 1
-  - type: Item
-    material: NETHER_WAART
-    amount: 2
+
+potions:
+  Potion of return:
+    keys:
+    - "this key is here"
+
+    player-commands: 
+    - "say hello"
+    console-commands: 
+    - "say goodbye"
+    permission: "activepotions.return"
+    color: 0x444aba
+    uses: 1
+    ingredients:
+    # - type: KeyedItem
+    #   key: "activepotions:Potion of Return"
+    #   amount: 1
+    - type: Item
+      material: NETHER_WAART
+      amount: 2

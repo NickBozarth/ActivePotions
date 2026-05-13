@@ -3,6 +3,7 @@ package com.tinnyspoon.activepotions.ingredients;
 import java.util.Map;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class ItemIngredient extends Ingredient {
@@ -16,5 +17,10 @@ public class ItemIngredient extends Ingredient {
         if (!(matObj instanceof String matString)) throw new IllegalArgumentException("ItemIngredient material is not a String");
         this.mat = Material.matchMaterial(matString);
         if (this.mat == null) throw new IllegalArgumentException("ItemIngredient Material." + matString + " is not a valid Material");
+    }
+
+    @Override
+    protected boolean _matchesItem(ItemStack item) {
+        return item.getType() == this.mat;
     }
 }
