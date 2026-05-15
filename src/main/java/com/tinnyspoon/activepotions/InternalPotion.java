@@ -64,7 +64,7 @@ public record InternalPotion (
             color = Color.WHITE;
         }
 
-        int uses = sec.getInt("uses", 1);
+        int uses = sec.getInt("uses", -1);
         List<Map<?, ?>> ingredientListMap = sec.getMapList("ingredients");
         if (ingredientListMap.size() == 0) {
             Bukkit.getLogger().warning("Potion [" + potionName + "] failed to load: Ingredient list is empty");
@@ -113,13 +113,13 @@ public record InternalPotion (
 
         List<Component> lore = potionMeta.lore();
         if (lore == null) lore = new ArrayList<>();
-        lore.addAll(
-            List.of(
-                Component.text(this.description()),
-                Component.text(""),
-                Component.text("Uses Remaining: " + this.uses())
-            )
-        );
+        lore.add(Component.text(this.description()));
+
+        if (uses != -1) {
+            lore.add(Component.text(""));
+            lore.add(Component.text("Uses Remaining: " + this.uses()));
+        }
+
         potionMeta.lore(lore);
 
         this.keys().stream().forEach(key -> pdt.set(this.potionKey, PersistentDataType.BOOLEAN, true));
