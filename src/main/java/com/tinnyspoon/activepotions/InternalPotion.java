@@ -162,7 +162,7 @@ public record InternalPotion (
         itemUsed[2] = ing2 == null;
 
         // check that all ingredients are matched to an input item
-        return this.ingredients.stream().allMatch(ingredient -> {
+        this.ingredients.stream().allMatch(ingredient -> {
             List<Pair<Integer, ItemStack>> matchingItems = new ArrayList<>();
             if (!itemUsed[0] && ingredient.matchesItem(ing0)) matchingItems.add(Pair.of(0, ing0));
             if (!itemUsed[1] && ingredient.matchesItem(ing1)) matchingItems.add(Pair.of(1, ing1));
@@ -175,8 +175,10 @@ public record InternalPotion (
             var smallestMatchingItemIndex = matchingItems.stream().min((i, j) -> Integer.compare(i.getRight().getAmount(), j.getRight().getAmount())).get().getLeft();
             itemUsed[smallestMatchingItemIndex] = true;
 
-            // check if all items were used
-            return Arrays.stream(itemUsed).allMatch(wasUsed -> wasUsed);
+            return true;
         });
+        
+        // check if all items were used
+        return Arrays.stream(itemUsed).allMatch(wasUsed -> wasUsed);
     }
 }

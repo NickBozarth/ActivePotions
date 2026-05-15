@@ -2,6 +2,7 @@ package com.tinnyspoon.activepotions.ingredients;
 
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -29,6 +30,14 @@ public class PotionIngredient extends Ingredient {
 
     @Override
     protected boolean _matchesItem(ItemStack item) {
+        Bukkit.getLogger().warning("has meta " + item.hasItemMeta());
+        if (item.hasItemMeta()) Bukkit.getLogger().warning("instance " + (item.getItemMeta() instanceof PotionMeta));
+        if (item.hasItemMeta() && item.getItemMeta() instanceof PotionMeta pm) {
+            Bukkit.getLogger().warning("potion type " + pm.getBasePotionType());
+            Bukkit.getLogger().warning("ingredient type " + this.type);
+            Bukkit.getLogger().warning("ret val is " + (pm.getBasePotionType() == this.type));
+        }
+        
         return item.hasItemMeta() &&
                item.getItemMeta() instanceof PotionMeta potionMeta &&
                potionMeta.getBasePotionType() == this.type;
