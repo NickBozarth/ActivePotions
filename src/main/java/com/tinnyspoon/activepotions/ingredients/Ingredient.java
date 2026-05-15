@@ -26,9 +26,10 @@ public abstract class Ingredient {
         // construct and return item
         if (typeString.equals("Item")) return new ItemIngredient(ingredientMap);
         if (typeString.equals("KeyedItem")) return new KeyedItemIngredient(ingredientMap);
+        if (typeString.equals("Potion")) return new PotionIngredient(ingredientMap);
 
         // default to exception
-        throw new IllegalArgumentException("Ingredient no ingredient type defined for " + typeString);
+        throw new IllegalArgumentException("Ingredient [no ingredient type defined for " + typeString + "]");
     }
 
     protected abstract boolean _matchesItem(ItemStack item);

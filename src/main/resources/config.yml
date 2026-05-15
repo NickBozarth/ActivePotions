@@ -14,9 +14,9 @@ potions:
     color: 0x444aba
     uses: 1
     ingredients:
-    # - type: KeyedItem
-    #   key: "activepotions:Potion of Return"
-    #   amount: 1
+    - type: KeyedItem
+      key: "activepotions:potion_of_return"
+      amount: 1
     - type: Item
       material: NETHER_WAART
       amount: 2

@@ -10,8 +10,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import com.tinnyspoon.activepotions.commands.BrewCmd;
 import com.tinnyspoon.activepotions.commands.GivePotionCmd;
 import com.tinnyspoon.activepotions.commands.ListPotionsCmd;
+import com.tinnyspoon.activepotions.commands.TestPotCmd;
 import com.tinnyspoon.activepotions.ingredients.Ingredient;
 
 import io.papermc.paper.command.brigadier.CommandSourceStack;
@@ -45,6 +47,8 @@ public class ActivePotions extends JavaPlugin {
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
             commands.registrar().register("givepotion", new GivePotionCmd());
             commands.registrar().register("listpotions", new ListPotionsCmd());
+            commands.registrar().register("testpot", new TestPotCmd());
+            commands.registrar().register("brew", new BrewCmd());
         });
 
 

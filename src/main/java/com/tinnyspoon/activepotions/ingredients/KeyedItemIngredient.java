@@ -15,10 +15,11 @@ public class KeyedItemIngredient extends Ingredient {
     protected KeyedItemIngredient(@NotNull Map<?, ?> ingredientMap) throws IllegalArgumentException {
         this.amount = (Integer)ingredientMap.get("amount");
         
-        if (!ingredientMap.containsKey("key")) throw new IllegalArgumentException("ItemIngredient does not contain a key");
+        if (!ingredientMap.containsKey("key")) throw new IllegalArgumentException("KeyedItemIngredient does not contain a key");
         Object keyObj = ingredientMap.get("key");
-        if (!(keyObj instanceof String keyString)) throw new IllegalArgumentException("ItemIngredient key is not a String");
+        if (!(keyObj instanceof String keyString)) throw new IllegalArgumentException("KeyedItemIngredient key is not a String");
         this.key = NamespacedKey.fromString(keyString);
+        if (this.key == null) throw new IllegalArgumentException("KeyedItemIngredient key is null");
     }
 
     @Override

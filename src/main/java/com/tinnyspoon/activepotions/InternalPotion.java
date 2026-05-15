@@ -44,6 +44,7 @@ public record InternalPotion (
     String permission,
     Color color,
     int uses,
+    Ingredient baseIngredient,
     List<Ingredient> ingredients,
     NamespacedKey potionKey
 ) {
@@ -74,6 +75,15 @@ public record InternalPotion (
             return null;
         }
 
+        Ingredient baseIngredient;
+        try {
+            Map<String, Object> baseIngredientMap = sec.getConfigurationSection("base-ingredient").getValues(false);
+            baseIngredient = Ingredient.parseMap(baseIngredientMap);
+        } catch (IllegalArgumentException e) {
+            Bukkit.getLogger().warning("Failed to load base-ingredient [" + potionName + "] for reason [" + e.getMessage() + "]");
+            return null;
+        }
+
 
         List<Ingredient> ingredients = new ArrayList<>();
         for (Map<?, ?> ingredientMap : ingredientListMap) {
@@ -88,7 +98,7 @@ public record InternalPotion (
         NamespacedKey potionKey = new NamespacedKey(ActivePotions.keyNamespace, potionName.replace(' ', '_').toLowerCase());
 
 
-        return new InternalPotion(potionName, description, keys, playerCommands, consoleCommands, permission, color, uses, ingredients, potionKey);
+        return new InternalPotion(potionName, description, keys, playerCommands, consoleCommands, permission, color, uses, baseIngredient, ingredients, potionKey);
     }
 
     public @NotNull ItemStack asItem() {
@@ -140,28 +150,33 @@ public record InternalPotion (
         });
     }
 
-    public boolean matchesIngredients(@Nullable ItemStack item0, @Nullable ItemStack item1, @Nullable ItemStack item2) {
-        if (item0 == null && item1 == null && item2 == null) return false;
+    public boolean matchesIngredients(@Nullable ItemStack baseIng, @Nullable ItemStack ing0, @Nullable ItemStack ing1, @Nullable ItemStack ing2) {
+        if (baseIng == null) return false;
+        if (ing0 == null && ing1 == null && ing2 == null) return false;
+
+        if (!this.baseIngredient.matchesItem(baseIng)) return false;
 
         Boolean itemUsed[] = new Boolean[3];
-        Arrays.fill(itemUsed, false);
+        itemUsed[0] = ing0 == null;
+        itemUsed[1] = ing1 == null;
+        itemUsed[2] = ing2 == null;
 
-        this.ingredients.stream().allMatch(ingredient -> {
+        // check that all ingredients are matched to an input item
+        return this.ingredients.stream().allMatch(ingredient -> {
             List<Pair<Integer, ItemStack>> matchingItems = new ArrayList<>();
-            if (!itemUsed[0] && ingredient.matchesItem(item0)) matchingItems.add(Pair.of(0, item0));
-            if (!itemUsed[1] && ingredient.matchesItem(item1)) matchingItems.add(Pair.of(1, item1));
-            if (!itemUsed[2] && ingredient.matchesItem(item2)) matchingItems.add(Pair.of(2, item2));
+            if (!itemUsed[0] && ingredient.matchesItem(ing0)) matchingItems.add(Pair.of(0, ing0));
+            if (!itemUsed[1] && ingredient.matchesItem(ing1)) matchingItems.add(Pair.of(1, ing1));
+            if (!itemUsed[2] && ingredient.matchesItem(ing2)) matchingItems.add(Pair.of(2, ing2));
 
             if (matchingItems.isEmpty()) return false;
 
             // why 😭😭
+            // find the stack with the smallest amount in it and use that stack for current ingredient
             var smallestMatchingItemIndex = matchingItems.stream().min((i, j) -> Integer.compare(i.getRight().getAmount(), j.getRight().getAmount())).get().getLeft();
             itemUsed[smallestMatchingItemIndex] = true;
 
-            return true;
+            // check if all items were used
+            return Arrays.stream(itemUsed).allMatch(wasUsed -> wasUsed);
         });
-
-
-        return true;
     }
 }

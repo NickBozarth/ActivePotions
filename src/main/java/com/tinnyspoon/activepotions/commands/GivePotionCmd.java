@@ -17,8 +17,8 @@ import io.papermc.paper.command.brigadier.CommandSourceStack;
 public class GivePotionCmd implements BasicCommand {
 
     @Override
-    public void execute(CommandSourceStack arg0, String[] args) {
-        CommandSender sender = arg0.getSender();
+    public void execute(CommandSourceStack sourceStack, String[] args) {
+        CommandSender sender = sourceStack.getSender();
 
         if (!(sender instanceof Player player)) {
             sender.sendMessage("This command can only be used by players");
